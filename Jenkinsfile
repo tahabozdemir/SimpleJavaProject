@@ -7,6 +7,7 @@ commit_id = readFile('.git/commit-id').trim()
 pipeline {
     agent any
     tools {
+        jdk 'jdk11'
         maven 'maven_3_5_0'
     }
     stages {
@@ -31,6 +32,14 @@ pipeline {
                     sh "docker image rm -f 63.35.99.174:5000/tahabzd:${commit_id}"
                 }
             }
+        }
+
+         stage('SonarQube analysis') {
+             steps {
+             withSonarQubeEnv('sonar-server') { 
+                sh 'mvn sonar:sonar'
+             }
+          }
         }
     }
 }
