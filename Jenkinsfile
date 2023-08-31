@@ -1,26 +1,34 @@
+def commit_id
+node {
+sh 'git rev-parse --short HEAD > .git/commit-id'
+commit_id = readFile('.git/commit-id').trim()
+}
+
 pipeline {
     agent any
-    tools{
+    tools {
         maven 'maven_3_5_0'
     }
-    stages{
+    stages {
         stage('Build Maven') {
-            steps{
+            steps {
               checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/tahabozdemir/SimpleJavaProject']])
-                sh 'mvn clean install'
+              sh 'mvn clean install'
             }
         }
-        stage('Build docker image') {
-            steps{
-                script{
-                    sh 'docker build -t 63.35.99.174:5000/devops-integration .'
+        
+        stage('Build and push docker image') {
+            steps {
+                script {
+                    docker.build("63.35.99.174:5000/tahabzd:${commit_id}", '.').push()
                 }
             }
         }
-        stage('Push image to S3 Bucket') {
-            steps{
-                script{ 
-                   sh 'docker push 63.35.99.174:5000/devops-integration'
+
+        stage('Docker remove image from EC2') {
+            steps {
+                script {
+                    sh "docker image rm -f 63.35.99.174:5000/tahabzd:${commit_id}"
                 }
             }
         }
