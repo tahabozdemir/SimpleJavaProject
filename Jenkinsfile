@@ -1,9 +1,8 @@
 def commit_id
 node {
-sh 'git rev-parse --short HEAD > ./commit-id'
-commit_id = readFile('./commit-id').trim()
+sh 'git rev-parse --short HEAD > .git/commit-id'
+commit_id = readFile('.git/commit-id').trim()
 }
-
 pipeline {
     agent any
     tools {
